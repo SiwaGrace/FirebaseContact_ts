@@ -1,0 +1,27 @@
+import { MdDelete, MdEditSquare } from "react-icons/md";
+import { IoIosContact } from "react-icons/io";
+import type { Contact } from "../App";
+
+type ContactCardProps = {
+  contact: Contact;
+};
+
+const ContactCard = ({ contact }: ContactCardProps) => {
+  return (
+    <div className="flex justify-between items-center gap-2 bg-yellow rounded-md p-1 mt-4">
+      <div className="flex gap-1">
+        <IoIosContact className="text-orange text-5xl " />
+        <div>
+          <h1>{contact.name}</h1>
+          <p>{contact.email}</p>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <MdEditSquare className="text-color-orange text-3xl " />
+        <MdDelete className="text-purple-600 text-3xl " />
+      </div>
+    </div>
+  );
+};
+
+export default ContactCard;

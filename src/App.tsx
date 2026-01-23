@@ -1,19 +1,97 @@
+import { useEffect, useState } from "react";
+import Navbar from "./components/Navbar";
+import { CiSearch, CiCirclePlus } from "react-icons/ci";
+import { IoMdContact } from "react-icons/io";
+import { AddContact } from "./components/AddContact";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "./firebase";
+import ContactCard from "./components/ContactCard";
+
+export type Contact = {
+  id: string;
+  name: string;
+  email: string;
+  // message: string;
+};
+
 const App = () => {
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
+
+  useEffect(() => {
+    const getContacts = async () => {
+      try {
+        setLoading(true);
+        const contactsRef = collection(db, "contact");
+        const contactsSnapShot = await getDocs(contactsRef);
+        const contactLists = contactsSnapShot.docs.map((doc) => {
+          const data = doc.data() as Omit<Contact, "id">;
+          return {
+            id: doc.id,
+            ...data,
+          };
+        });
+        setContacts(contactLists);
+        setLoading(false);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getContacts();
+  }, []);
+
+  const isOpen = () => {
+    setOpenModal(true);
+  };
+
+  const isClosed = () => {
+    setOpenModal(false);
+  };
   return (
-    <div>
-      <h1 className="text-amber-800">Appjh</h1>
-      <svg
-        width="22"
-        height="24"
-        viewBox="0 0 22 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M21.6294 17.9194L18.813 0.573891C18.725 0.0311563 18.167 -0.193374 17.7785 0.195771L0 17.957L9.77256 23.4192C10.0773 23.5894 10.4206 23.6788 10.7697 23.6788C11.1188 23.6789 11.4621 23.5897 11.7669 23.4197L21.6295 17.9193L21.6294 17.9194Z"
-          fill="#FCCA3F"
+    <div className="mx-auto max-w-92.5 ">
+      <Navbar />
+      <div className="flex gap-2">
+        <div className="flex grow relative">
+          <CiSearch className="text-white text-3xl absolute mt-1 ml-1" />
+          <input
+            type="text"
+            name=""
+            id=""
+            className="rounded-md grow border border-white h-10  pl-8 text-white"
+            placeholder="Search Contact"
+          />
+        </div>
+        <CiCirclePlus
+          className="text-white text-4xl cursor-pointer "
+          onClick={isOpen}
         />
-      </svg>
+      </div>
+      <div>
+        {contacts.length > 0 ? (
+          contacts.map((contact) => (
+            //  {/* Contact */}
+            <ContactCard key={contact.id} contact={contact} />
+          ))
+        ) : (
+          // {/* No contact */}
+          <div className="h-[70vh] flex flex-col justify-center items-center border">
+            {loading && (
+              <p className="text-white text-center mt-10">loading...</p>
+            )}
+            <div>
+              <div className="flex justify-center items-center gap-2">
+                <IoMdContact className="text-white text-4xl " />
+                <h1 className="text-2xl font-bold text-white capitalize">
+                  no contact found
+                </h1>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      {openModal && <AddContact isClosed={isClosed} />}
+      {/* <AddContact /> */}
     </div>
   );
 };
