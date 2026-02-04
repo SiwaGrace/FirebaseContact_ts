@@ -1,27 +1,58 @@
 import { RxCross2 } from "react-icons/rx";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import { db } from "../firebase";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import type { Contact } from "../App";
+import { toast } from "react-toastify";
+import * as Yup from "yup";
 
-type AddContactProps = {
-  isClosed: () => void;
-  // isOpen: () => void;
-};
-type Contact = {
+type AddContactProps =
+  | {
+      isClosed: () => void;
+      isUpdate: true;
+      contact: Contact;
+    }
+  | {
+      isClosed: () => void;
+      isUpdate?: false;
+      contact?: never;
+    };
+
+type Contacte = {
   name: string;
   email: string;
 };
+const contactSchemaValidation = Yup.object().shape({
+  name: Yup.string().required("Name is required"),
+  email: Yup.string().email("invalid Email").required("Email is required"),
+});
 
-export const AddContact = ({ isClosed }: AddContactProps) => {
-  const addContact = async (contact: Contact) => {
+export const AddContact = ({
+  isClosed,
+  isUpdate,
+  contact,
+}: AddContactProps) => {
+  const addContact = async (contact: Contacte) => {
     try {
       const contactRef = collection(db, "contact");
       await addDoc(contactRef, contact);
+      isClosed();
+      toast.success("conatct added successfully");
     } catch (error) {
       console.log(error);
     }
   };
 
+  const updateContact = async (contact: Contacte, id: string) => {
+    try {
+      const contactRef = doc(db, "contact", id);
+      await updateDoc(contactRef, contact);
+      isClosed();
+      toast.success("conatct Updated successfully");
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Blur overlay */}
@@ -47,11 +78,18 @@ export const AddContact = ({ isClosed }: AddContactProps) => {
           <p className="text-gray-600 mb-6">Enter the contact details below</p>
 
           <Formik
-            initialValues={{ name: "", email: "" }}
+            validationSchema={contactSchemaValidation}
+            initialValues={
+              isUpdate
+                ? {
+                    name: contact.name,
+                    email: contact.email,
+                  }
+                : { name: "", email: "" }
+            }
             onSubmit={(values) => {
               console.log("data", values);
-              addContact(values);
-              isClosed();
+              isUpdate ? updateContact(values, contact.id) : addContact(values);
             }}
           >
             {() => (
@@ -87,6 +125,9 @@ export const AddContact = ({ isClosed }: AddContactProps) => {
                       className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                       placeholder="Enter full name"
                     />
+                    <div className="text-red-500 text-xs">
+                      <ErrorMessage name="name" />
+                    </div>
                   </div>
                 </div>
 
@@ -121,6 +162,9 @@ export const AddContact = ({ isClosed }: AddContactProps) => {
                       className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                       placeholder="example@email.com"
                     />
+                    <div className="text-red-500 text-xs">
+                      <ErrorMessage name="email" />
+                    </div>
                   </div>
                 </div>
 
@@ -129,15 +173,15 @@ export const AddContact = ({ isClosed }: AddContactProps) => {
                   <button
                     type="button"
                     onClick={isClosed}
-                    className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                    className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+                    className="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 cursor-pointer"
                   >
-                    Add Contact
+                    {isUpdate ? "Update" : "Add"} Contact
                   </button>
                 </div>
               </Form>

@@ -3,15 +3,21 @@ import { IoIosContact } from "react-icons/io";
 import type { Contact } from "../App";
 import { deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
+import useDisclouse from "../hooks/useDisclouse";
+import { AddContact } from "./AddContact";
+import { toast } from "react-toastify";
 
 type ContactCardProps = {
   contact: Contact;
 };
 
 const ContactCard = ({ contact }: ContactCardProps) => {
+  const { isOpen, onOpen, isClosed } = useDisclouse();
+
   const deleteContact = async (id: string) => {
     try {
       await deleteDoc(doc(db, "contact", id));
+      toast.success("conatct deleted successfully");
     } catch (error) {
       console.log(error);
     }
@@ -26,12 +32,17 @@ const ContactCard = ({ contact }: ContactCardProps) => {
         </div>
       </div>
       <div className="flex gap-2">
-        <MdEditSquare className="text-color-orange text-3xl cursor-pointer" />
+        <MdEditSquare
+          className="text-color-orange text-3xl cursor-pointer"
+          onClick={isOpen}
+        />
         <MdDelete
-          className="text-purple-600 text-3xl cursor-pointer"
+          className="text-amber-600 text-3xl cursor-pointer"
           onClick={() => deleteContact(contact.id)}
         />
       </div>
+      {/* update contact */}
+      {onOpen && <AddContact contact={contact} isUpdate isClosed={isClosed} />}
     </div>
   );
 };
