@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import Navbar from "./components/Navbar";
 import { CiSearch, CiCirclePlus } from "react-icons/ci";
 import { IoMdContact } from "react-icons/io";
+import Navbar from "./components/Navbar";
 import { AddContact } from "./components/AddContact";
+import ContactCard from "./components/ContactCard";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
-import ContactCard from "./components/ContactCard";
 
 export type Contact = {
   id: string;
@@ -51,6 +51,7 @@ const App = () => {
   return (
     <div className="mx-auto max-w-92.5 ">
       <Navbar />
+      {/* search bar */}
       <div className="flex gap-2">
         <div className="flex grow relative">
           <CiSearch className="text-white text-3xl absolute mt-1 ml-1" />
@@ -67,6 +68,7 @@ const App = () => {
           onClick={isOpen}
         />
       </div>
+      {/* contact list */}
       <div>
         {contacts.length > 0 ? (
           contacts.map((contact) => (
@@ -75,7 +77,7 @@ const App = () => {
           ))
         ) : (
           // {/* No contact */}
-          <div className="h-[70vh] flex flex-col justify-center items-center border">
+          <div className="h-[70vh] flex flex-col justify-center items-center">
             {loading && (
               <p className="text-white text-center mt-10">loading...</p>
             )}
@@ -90,6 +92,7 @@ const App = () => {
           </div>
         )}
       </div>
+      {/* add contact modal */}
       {openModal && <AddContact isClosed={isClosed} />}
       {/* <AddContact /> */}
     </div>
